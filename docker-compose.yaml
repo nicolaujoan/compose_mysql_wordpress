@@ -1,25 +1,35 @@
-version: '3.1'
+version: "3"
 
 services:
+   db_node_domain:
+     image: mysql:5.7
+     volumes:
+        - db_data:/var/lib/mysql
+     restart: always
+     environment:
+        MYSQL_ROOT_PASSWORD: somewordpress
+        MYSQL_DATABASE: wordpress
+        MYSQL_USER: wordpress
+        MYSQL_PASSWORD: wordpress
+     container_name: wp_test_db
 
-  wordpress:
-    image: wordpress:php7.2-apache
-    ports: 
-      - 8080:80
-    environment:
-      WORDPRESS_DB_HOST: mysql
-      WORDPRESS_DB_USER: root
-      WORDPRESS_DB_PASSWORD: root
-      WORDPRESS_DB_NAME: wordpress
-    links:
-      - mysql:mysql
-  
-  mysql:
-    image: mysql:8.8.13
-    comand: --default-authentication-plugin-mysql_native_password
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - ~/docker/mysql-data:/var/lib/mysql
-      
+   wordpress:
+     depends_on:
+        - db_node_domain
+     image: wordpress:latest
+     expose:
+        - 80
+     ports:
+        - 8090:80
+     restart: always
+     environment:
+        VIRTUAL_HOST: blog.example.com
+        LETSENCRYPT_HOST: blog.example.com
+        LETSENCRYPT_EMAIL: foo@example.com
+        WORDPRESS_DB_HOST: db_node_domain:3306
+        WORDPRESS_DB_USER: wordpress
+        WORDPRESS_DB_PASSWORD: wordpress
+     container_name: wp_test
+volumes:
+  db_data:
+
